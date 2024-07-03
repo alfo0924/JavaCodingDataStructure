@@ -24,5 +24,27 @@ public class Main {
         String strNow1=format1.print(now);
         System.out.println(strNow1);
 
+        DateTimeFormatter format2=DateTimeFormat.forPattern("dd/MM/yyyy HH:mm:ss");
+        String strNow2=format1.print(now);
+        System.out.println(strNow2);
+
+        String xmasDay="25/12/2024 00:00:00";
+        DateTime xmas = format2.parseDateTime(xmasDay);
+        System.out.println(xmas);
+
+        String cnyDay="01-01-2024 00:00:00";
+        DateTime cny=format1.parseDateTime(cnyDay);
+        System.out.println(cny);
+
+        DateTime day20 = now.plusDays(20);
+        String strDay20=format.print(day20);
+        System.out.println(strDay20); // now + 20days
+
+        day20=xmas.plusDays(20);
+        strDay20=format.print(day20);
+        System.out.println(strDay20); // xmas + 20days
+
+
+
     }
 }
