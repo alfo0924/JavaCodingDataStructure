@@ -1,8 +1,12 @@
 package fcu.web;
 
+import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+
+import java.io.File;
+import java.io.IOException;
 
 public class Main {
     public static void main(String[] args)
@@ -54,6 +58,23 @@ public class Main {
         System.out.println(day30);
 
 
+
+
+        try
+        {
+            FileUtils.copyFile(new File("pom.xml"),new File("pom.backup"));
+
+        }catch(IOException e)
+        {
+            throw new RuntimeException(e);
+        }
+        try
+        {
+            FileUtils.copyFile(new File("pom.xml"),new File("pom.backup"));
+        }catch(IOException e)
+        {
+            throw new RuntimeException(e);
+        }
 
 
 
