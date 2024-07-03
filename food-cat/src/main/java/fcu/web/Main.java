@@ -5,11 +5,7 @@ public class Main {
     {
         System.out.println("Hello world!");
 
-        Student tom=new Student(011101,"ComputerScienese","CS","Web","male",26,"TOM");
-
+        Student tom=new Student("male","ComputerScienese",3318);
         System.out.println(tom.toString());
-
-
-
     }
 }
