@@ -1,6 +1,8 @@
 package fcu.web;
 
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 public class Main {
     public static void main(String[] args)
@@ -12,6 +14,15 @@ public class Main {
         DateTime now = new DateTime();
         System.out.println(now.toString());
         System.out.println(now);
+
+
+        DateTimeFormatter format = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+        String strNow=format.print(now);
+        System.out.println(strNow);
+
+        DateTimeFormatter format1=DateTimeFormat.forPattern("dd-MM-yyyy HH:mm:ss");
+        String strNow1=format1.print(now);
+        System.out.println(strNow1);
 
     }
 }
