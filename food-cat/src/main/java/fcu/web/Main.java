@@ -44,6 +44,17 @@ public class Main {
         strDay20=format.print(day20);
         System.out.println(strDay20); // xmas + 20days
 
+        DateTime day30=now.plusDays(30);
+        String strDay30=format.print(day30);
+        System.out.println(strDay30);
+
+        day30=cny.plusDays(30);
+        strDay30=format.print(day30);
+        System.out.println(strDay30);
+        System.out.println(day30);
+
+
+
 
 
     }
