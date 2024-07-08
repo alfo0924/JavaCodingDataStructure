@@ -57,8 +57,7 @@ public class NumberMatrix extends JFrame {
 
         inputField = new JTextField();
         inputField.setHorizontalAlignment(JTextField.CENTER);
-
-        searchPanel.add(new JLabel("學號:D1204433 姓名:林俊傑 \t Enter a number:", SwingConstants.RIGHT));
+        searchPanel.add(new JLabel("Enter a number:", SwingConstants.RIGHT));
         searchPanel.add(inputField);
 
         sequentialSearchButton = new JButton("Sequential Search");
