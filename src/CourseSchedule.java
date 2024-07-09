@@ -1,141 +1,157 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.*;
-import java.io.IOException;
+import java.awt.event.*;
+import java.util.EventObject;
+import javax.swing.table.*;
 
 public class CourseSchedule extends JFrame {
-    private JButton convertButton, saveButton;
-    private JPanel coursePanel;
-    private JLabel[][] courseLabels;
-    private int[][] courseSchedule;
-
-    // 課程編號與名稱的關係
-    private String[] courseNames = {"", "計算機概論", "離散數學", "資料結構", "資料庫理論", "上機實習"};
+    private JTable table;
+    private String[][] scheduleData;
+    private int[][] numberSchedule;
+    private String[] courses = {"", "計算機概論", "離散數學", "資料結構", "資料庫理論", "上機實習"};
+    private JButton saveButton, convertButton;
+    private JList<String> courseList;
 
     public CourseSchedule() {
         setTitle("課表");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 600);
-        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
 
-        // 建立課表面板
-        coursePanel = new JPanel(new GridLayout(7, 6, 10, 10)); // 7行，6列
-        courseLabels = new JLabel[6][6]; // 6行，6列
-        courseSchedule = new int[6][5]; // 6行，5列
+        String[] columnNames = {"節次", "星期一", "星期二", "星期三", "星期四", "星期五"};
+        scheduleData = new String[6][6];
+        numberSchedule = new int[6][5];
 
-        // 初始化課表
         for (int i = 0; i < 6; i++) {
-            for (int j = 0; j < 6; j++) {
-                if (i == 0 && j == 0) {
-                    courseLabels[i][j] = new JLabel("節次", SwingConstants.CENTER);
-                } else if (i == 0) {
-                    courseLabels[i][j] = new JLabel("星期" + j, SwingConstants.CENTER);
-                } else if (j == 0) {
-                    courseLabels[i][j] = new JLabel(String.valueOf(i), SwingConstants.CENTER);
-                } else {
-                    courseLabels[i][j] = new JLabel("", SwingConstants.CENTER);
-                    courseLabels[i][j].setBorder(BorderFactory.createLineBorder(Color.GRAY));
-                    courseLabels[i][j].setBackground(Color.WHITE);
-                    courseLabels[i][j].setOpaque(true);
-                    courseLabels[i][j].setTransferHandler(new CourseTransferHandler());
-                }
-                coursePanel.add(courseLabels[i][j]);
-            }
+            scheduleData[i][0] = String.valueOf(i + 1);
         }
 
-        // 建立轉換按鈕
+        table = new JTable(scheduleData, columnNames);
+        table.setRowHeight(30);
+        table.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                c.setBackground(Color.LIGHT_GRAY);
+                return c;
+            }
+        });
+        table.getColumnModel().getColumn(0).setCellEditor(new DefaultCellEditor(new JTextField()) {
+            @Override
+            public boolean isCellEditable(EventObject e) {
+                return false;
+            }
+        });
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        add(scrollPane, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel();
+        saveButton = new JButton("保存");
         convertButton = new JButton("轉換");
+        buttonPanel.add(saveButton);
+        buttonPanel.add(convertButton);
+        add(buttonPanel, BorderLayout.SOUTH);
+
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        for (int i = 1; i < courses.length; i++) {
+            listModel.addElement(i + ". " + courses[i]);
+        }
+        courseList = new JList<>(listModel);
+        courseList.setDragEnabled(true);
+        JScrollPane listScrollPane = new JScrollPane(courseList);
+        listScrollPane.setPreferredSize(new Dimension(150, 0));
+        add(listScrollPane, BorderLayout.EAST);
+
+        saveButton.addActionListener(e -> saveSchedule());
         convertButton.addActionListener(e -> convertSchedule());
 
-        // 建立保存按鈕
-        saveButton = new JButton("保存");
-        saveButton.addActionListener(e -> saveSchedule());
+        setSize(750, 300);
+        setLocationRelativeTo(null);
+        setVisible(true);
 
-        // 建立課程說明面板
-        JPanel infoPanel = new JPanel(new GridLayout(6, 1, 10, 10));
-        infoPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10)); // 設定邊界
-        infoPanel.add(new JLabel("課程編號與名稱:"));
-        for (int i = 1; i <= 5; i++) {
-            infoPanel.add(new JLabel(i + ". " + courseNames[i]));
-        }
-
-        // 建立整體佈局
-        JPanel mainPanel = new JPanel(new BorderLayout(20, 20));
-        mainPanel.add(coursePanel, BorderLayout.CENTER);
-        mainPanel.add(convertButton, BorderLayout.SOUTH);
-        mainPanel.add(saveButton, BorderLayout.NORTH);
-        mainPanel.add(infoPanel, BorderLayout.EAST);
-
-        add(mainPanel);
+        setupDragAndDrop();
     }
 
-    private void convertSchedule() {
-        for (int i = 1; i < 6; i++) {
-            for (int j = 1; j < 6; j++) {
+    private void setupDragAndDrop() {
+        courseList.setTransferHandler(new TransferHandler() {
+            @Override
+            public int getSourceActions(JComponent c) {
+                return TransferHandler.COPY;
+            }
+
+            @Override
+            protected Transferable createTransferable(JComponent c) {
+                return new StringSelection(courseList.getSelectedValue());
+            }
+        });
+
+        table.setDropMode(DropMode.ON_OR_INSERT);
+        table.setTransferHandler(new TransferHandler() {
+            @Override
+            public boolean canImport(TransferSupport support) {
+                return support.isDataFlavorSupported(DataFlavor.stringFlavor);
+            }
+
+            @Override
+            public boolean importData(TransferSupport support) {
+                if (!canImport(support)) {
+                    return false;
+                }
                 try {
-                    int course = Integer.parseInt(courseLabels[i][j].getText());
-                    if (course >= 1 && course <= 5) {
-                        courseLabels[i][j].setText(courseNames[course]);
-                        courseSchedule[i - 1][j - 1] = course;
+                    String data = (String) support.getTransferable().getTransferData(DataFlavor.stringFlavor);
+                    JTable.DropLocation dl = (JTable.DropLocation) support.getDropLocation();
+                    int row = dl.getRow();
+                    int col = dl.getColumn();
+                    if (col > 0) {
+                        String courseNumber = data.split("\\.")[0];
+                        int number = Integer.parseInt(courseNumber);
+                        table.setValueAt(courseNumber, row, col);
+                        numberSchedule[row][col-1] = number;  // 更新 numberSchedule 
                     }
-                } catch (NumberFormatException e) {
-                    // If not a valid number, do nothing
+                    return true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
                 }
             }
-        }
+        });
     }
 
     private void saveSchedule() {
-        System.out.println("課表內容:");
+        System.out.println("Current schedule:");
         for (int i = 0; i < 6; i++) {
             for (int j = 0; j < 5; j++) {
-                System.out.print(courseSchedule[i][j] + " ");
+                System.out.print(numberSchedule[i][j] + " ");
             }
             System.out.println();
         }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            CourseSchedule frame = new CourseSchedule();
-            frame.setVisible(true);
-        });
+    private void convertSchedule() {
+        for (int i = 0; i < 6; i++) {
+            for (int j = 1; j < 6; j++) {
+                String cellValue = (String) table.getValueAt(i, j);
+                try {
+                    int courseNumber = Integer.parseInt(cellValue);
+                    if (courseNumber >= 1 && courseNumber < courses.length) {
+                        numberSchedule[i][j-1] = courseNumber;  // 更新 numberSchedule 
+                        table.setValueAt(courses[courseNumber], i, j);
+                    }
+                } catch (NumberFormatException e) {
+                    // 如果不是數字，嘗試將課程名稱轉換為編號 
+                    for (int k = 1; k < courses.length; k++) {
+                        if (courses[k].equals(cellValue)) {
+                            numberSchedule[i][j-1] = k;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    private class CourseTransferHandler extends TransferHandler {
-        @Override
-        public int getSourceActions(JComponent c) {
-            return COPY_OR_MOVE;
-        }
-
-        @Override
-        protected Transferable createTransferable(JComponent c) {
-            if (c instanceof JLabel) {
-                JLabel label = (JLabel) c;
-                return new StringSelection(label.getText());
-            }
-            return null;
-        }
-
-        @Override
-        public boolean canImport(TransferHandler.TransferSupport support) {
-            return support.isDataFlavorSupported(DataFlavor.stringFlavor);
-        }
-
-        @Override
-        public boolean importData(TransferHandler.TransferSupport support) {
-            if (!canImport(support)) {
-                return false;
-            }
-
-            try {
-                String text = (String) support.getTransferable().getTransferData(DataFlavor.stringFlavor);
-                JLabel label = (JLabel) support.getComponent();
-                label.setText(text);
-                return true;
-            } catch (UnsupportedFlavorException | IOException e) {
-                return false;
-            }
-        }
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(CourseSchedule::new);
     }
 }
