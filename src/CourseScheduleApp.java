@@ -4,6 +4,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.TransferHandler;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,9 +17,10 @@ public class CourseScheduleApp extends JFrame {
     private JTable table;
     private DefaultTableModel model;
     private JLabel statusLabel;
-    private JList courseList;
+    private JList<String> courseList;
     private Map<String, Integer> classMap;
     private int[][] courseNumbers;
+    private boolean displayCourseNames = false; // Flag to toggle between code and name
 
     public CourseScheduleApp() {
         setTitle("課表");
@@ -61,13 +64,13 @@ public class CourseScheduleApp extends JFrame {
 
         table.setDragEnabled(true);
         table.setDropMode(DropMode.ON_OR_INSERT_ROWS);
-        table.setTransferHandler(new TransferHandler("text"));
+        table.setTransferHandler(new TableTransferHandler());
 
         JButton btnSave = new JButton("保存");
         btnSave.addActionListener(e -> saveSchedule());
 
         JButton btnConvert = new JButton("轉換為課程名稱");
-        btnConvert.addActionListener(e -> convertToCourseNames());
+        btnConvert.addActionListener(e -> toggleDisplay());
 
         statusLabel = new JLabel(getClassNumberRelationshipText());
 
@@ -75,7 +78,7 @@ public class CourseScheduleApp extends JFrame {
         statusPanel.add(statusLabel);
         add(statusPanel, BorderLayout.NORTH);
 
-        DefaultListModel listModel = new DefaultListModel<>();
+        DefaultListModel<String> listModel = new DefaultListModel<>();
         for (int i = 1; i < CLASS_NAMES.length; i++) {
             listModel.addElement(CLASS_NAMES[i]);
         }
@@ -83,39 +86,7 @@ public class CourseScheduleApp extends JFrame {
         courseList = new JList<>(listModel);
         courseList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         courseList.setDragEnabled(true);
-        courseList.setTransferHandler(new TransferHandler("text") {
-            @Override
-            public boolean canImport(TransferSupport support) {
-                return support.isDataFlavorSupported(DataFlavor.stringFlavor);
-            }
-
-            @Override
-            public boolean importData(TransferSupport support) {
-                if (!canImport(support)) {
-                    return false;
-                }
-
-                try {
-                    String data = (String) support.getTransferable().getTransferData(DataFlavor.stringFlavor);
-                    JTable.DropLocation dl = (JTable.DropLocation) support.getDropLocation();
-                    int row = dl.getRow();
-                    int col = dl.getColumn();
-                    if (col > 0) {
-                        String className = data;
-                        if (classMap.containsKey(className)) {
-                            int classIndex = classMap.get(className);
-                            courseNumbers[row][col - 1] = classIndex;
-                            table.setValueAt(String.valueOf(classIndex), row, col);
-                            return true;
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                return false;
-            }
-        });
+        courseList.setTransferHandler(new ListTransferHandler());
 
         JScrollPane listScrollPane = new JScrollPane(courseList);
         listScrollPane.setPreferredSize(new Dimension(150, 0));
@@ -128,15 +99,30 @@ public class CourseScheduleApp extends JFrame {
 
         pack();
         setLocationRelativeTo(null);
-        setupDragAndDrop();
-    }
-
-    private void setupDragAndDrop() {
-        table.setTransferHandler(new TableTransferHandler());
-        courseList.setTransferHandler(new ListTransferHandler());
     }
 
     private class TableTransferHandler extends TransferHandler {
+        @Override
+        public int getSourceActions(JComponent c) {
+            return COPY_OR_MOVE;
+        }
+
+        @Override
+        protected Transferable createTransferable(JComponent c) {
+            JTable table = (JTable) c;
+            int row = table.getSelectedRow();
+            int col = table.getSelectedColumn();
+            if (col > 0) {
+                String className = (String) table.getValueAt(row, col);
+                if (!displayCourseNames) {
+                    return new StringSelection(String.valueOf(courseNumbers[row][col - 1]));
+                } else {
+                    return new StringSelection(className);
+                }
+            }
+            return null;
+        }
+
         @Override
         public boolean canImport(TransferSupport support) {
             return support.isDataFlavorSupported(DataFlavor.stringFlavor);
@@ -154,13 +140,19 @@ public class CourseScheduleApp extends JFrame {
                 int row = dl.getRow();
                 int col = dl.getColumn();
                 if (col > 0) {
-                    String className = data;
-                    if (classMap.containsKey(className)) {
-                        int classIndex = classMap.get(className);
-                        courseNumbers[row][col - 1] = classIndex;
-                        table.setValueAt(String.valueOf(classIndex), row, col);
-                        return true;
+                    if (!displayCourseNames) {
+                        int courseIndex = Integer.parseInt(data);
+                        courseNumbers[row][col - 1] = courseIndex;
+                        table.setValueAt(String.valueOf(courseIndex), row, col);
+                    } else {
+                        String className = data;
+                        if (classMap.containsKey(className)) {
+                            int classIndex = classMap.get(className);
+                            courseNumbers[row][col - 1] = classIndex;
+                            table.setValueAt(className, row, col);
+                        }
                     }
+                    return true;
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -171,6 +163,21 @@ public class CourseScheduleApp extends JFrame {
     }
 
     private class ListTransferHandler extends TransferHandler {
+        @Override
+        public int getSourceActions(JComponent c) {
+            return COPY_OR_MOVE;
+        }
+
+        @Override
+        protected Transferable createTransferable(JComponent c) {
+            JList list = (JList) c;
+            int index = list.getSelectedIndex();
+            if (index >= 0) {
+                return new StringSelection((String) list.getModel().getElementAt(index));
+            }
+            return null;
+        }
+
         @Override
         public boolean canImport(TransferSupport support) {
             return support.isDataFlavorSupported(DataFlavor.stringFlavor);
@@ -186,7 +193,7 @@ public class CourseScheduleApp extends JFrame {
                 String data = (String) support.getTransferable().getTransferData(DataFlavor.stringFlavor);
                 JList.DropLocation dl = (JList.DropLocation) support.getDropLocation();
                 int index = dl.getIndex();
-                DefaultListModel model = (DefaultListModel) courseList.getModel();
+                DefaultListModel<String> model = (DefaultListModel<String>) courseList.getModel();
                 model.add(index, data);
                 return true;
             } catch (Exception e) {
@@ -210,11 +217,20 @@ public class CourseScheduleApp extends JFrame {
             for (int col = 1; col < NUM_COLS; col++) {
                 Object value = table.getValueAt(row, col);
                 if (value != null && value instanceof String) {
-                    courseNumbers[row][col - 1] = Integer.parseInt((String) value);
+                    courseNumbers[row][col - 1] = classMap.get(value);
                 }
             }
         }
         JOptionPane.showMessageDialog(this, "課程表已保存");
+    }
+
+    private void toggleDisplay() {
+        displayCourseNames = !displayCourseNames;
+        if (displayCourseNames) {
+            convertToCourseNames();
+        } else {
+            convertToCourseCodes();
+        }
     }
 
     private void convertToCourseNames() {
@@ -228,6 +244,17 @@ public class CourseScheduleApp extends JFrame {
                             break;
                         }
                     }
+                }
+            }
+        }
+    }
+
+    private void convertToCourseCodes() {
+        for (int row = 0; row < NUM_ROWS; row++) {
+            for (int col = 1; col < NUM_COLS; col++) {
+                int courseNumber = courseNumbers[row][col - 1];
+                if (courseNumber != 0) {
+                    table.setValueAt(String.valueOf(courseNumber), row, col);
                 }
             }
         }

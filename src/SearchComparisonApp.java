@@ -31,7 +31,7 @@ public class SearchComparisonApp extends JFrame {
     private HashSet<Integer> hashSetData; // for hash search
 
     public SearchComparisonApp() {
-        setTitle("Search Algorithm Comparison");
+        setTitle("D1204433 林俊傑  Search Algorithm Comparison");
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -218,7 +218,10 @@ public class SearchComparisonApp extends JFrame {
             results.append("Hash Search: Number not found\n");
         }
 
-        resultsTextArea.setText(results.toString());
+        resultsTextArea.append(results.toString()); // Append results to existing text
+
+        // Add a newline for clarity after each search
+        resultsTextArea.append("\n");
     }
 
     private double sequentialSearch() {
@@ -265,7 +268,7 @@ public class SearchComparisonApp extends JFrame {
     }
 
     private void clearResults() {
-        resultsTextArea.setText("");
+        resultsTextArea.setText(""); // Clear results
     }
 
     public static void main(String[] args) {
