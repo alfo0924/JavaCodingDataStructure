@@ -14,7 +14,7 @@ public class CourseSchedule extends JFrame {
     private JList<String> courseList;
 
     public CourseSchedule() {
-        setTitle("課表");
+        setTitle("D1204433 林俊傑 課表");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 

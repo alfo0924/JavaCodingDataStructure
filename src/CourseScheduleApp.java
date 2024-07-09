@@ -20,7 +20,6 @@ public class CourseScheduleApp extends JFrame {
     private JList<String> courseList;
     private Map<String, Integer> classMap;
     private int[][] courseNumbers;
-    private boolean displayCourseNames = false; // Flag to toggle between code and name
 
     public CourseScheduleApp() {
         setTitle("課表");
@@ -69,9 +68,6 @@ public class CourseScheduleApp extends JFrame {
         JButton btnSave = new JButton("保存");
         btnSave.addActionListener(e -> saveSchedule());
 
-        JButton btnConvert = new JButton("轉換為課程名稱");
-        btnConvert.addActionListener(e -> toggleDisplay());
-
         statusLabel = new JLabel(getClassNumberRelationshipText());
 
         JPanel statusPanel = new JPanel();
@@ -94,7 +90,6 @@ public class CourseScheduleApp extends JFrame {
 
         JPanel panelButtons = new JPanel();
         panelButtons.add(btnSave);
-        panelButtons.add(btnConvert);
         add(panelButtons, BorderLayout.SOUTH);
 
         pack();
@@ -113,11 +108,12 @@ public class CourseScheduleApp extends JFrame {
             int row = table.getSelectedRow();
             int col = table.getSelectedColumn();
             if (col > 0) {
-                String className = (String) table.getValueAt(row, col);
-                if (!displayCourseNames) {
-                    return new StringSelection(String.valueOf(courseNumbers[row][col - 1]));
-                } else {
-                    return new StringSelection(className);
+                Object value = table.getValueAt(row, col);
+                if (value instanceof String) {
+                    String className = (String) value;
+                    if (classMap.containsKey(className)) {
+                        return new StringSelection(String.valueOf(classMap.get(className)));
+                    }
                 }
             }
             return null;
@@ -140,18 +136,9 @@ public class CourseScheduleApp extends JFrame {
                 int row = dl.getRow();
                 int col = dl.getColumn();
                 if (col > 0) {
-                    if (!displayCourseNames) {
-                        int courseIndex = Integer.parseInt(data);
-                        courseNumbers[row][col - 1] = courseIndex;
-                        table.setValueAt(String.valueOf(courseIndex), row, col);
-                    } else {
-                        String className = data;
-                        if (classMap.containsKey(className)) {
-                            int classIndex = classMap.get(className);
-                            courseNumbers[row][col - 1] = classIndex;
-                            table.setValueAt(className, row, col);
-                        }
-                    }
+                    int courseIndex = Integer.parseInt(data);
+                    courseNumbers[row][col - 1] = courseIndex;
+                    table.setValueAt(classMap.keySet().toArray()[courseIndex - 1], row, col);
                     return true;
                 }
             } catch (Exception e) {
@@ -170,10 +157,10 @@ public class CourseScheduleApp extends JFrame {
 
         @Override
         protected Transferable createTransferable(JComponent c) {
-            JList list = (JList) c;
+            JList<String> list = (JList<String>) c;
             int index = list.getSelectedIndex();
             if (index >= 0) {
-                return new StringSelection((String) list.getModel().getElementAt(index));
+                return new StringSelection(list.getModel().getElementAt(index));
             }
             return null;
         }
@@ -213,51 +200,8 @@ public class CourseScheduleApp extends JFrame {
     }
 
     private void saveSchedule() {
-        for (int row = 0; row < NUM_ROWS; row++) {
-            for (int col = 1; col < NUM_COLS; col++) {
-                Object value = table.getValueAt(row, col);
-                if (value != null && value instanceof String) {
-                    courseNumbers[row][col - 1] = classMap.get(value);
-                }
-            }
-        }
+        // Implement your save logic here
         JOptionPane.showMessageDialog(this, "課程表已保存");
-    }
-
-    private void toggleDisplay() {
-        displayCourseNames = !displayCourseNames;
-        if (displayCourseNames) {
-            convertToCourseNames();
-        } else {
-            convertToCourseCodes();
-        }
-    }
-
-    private void convertToCourseNames() {
-        for (int row = 0; row < NUM_ROWS; row++) {
-            for (int col = 1; col < NUM_COLS; col++) {
-                int courseNumber = courseNumbers[row][col - 1];
-                if (courseNumber != 0) {
-                    for (Map.Entry<String, Integer> entry : classMap.entrySet()) {
-                        if (entry.getValue() == courseNumber) {
-                            table.setValueAt(entry.getKey(), row, col);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private void convertToCourseCodes() {
-        for (int row = 0; row < NUM_ROWS; row++) {
-            for (int col = 1; col < NUM_COLS; col++) {
-                int courseNumber = courseNumbers[row][col - 1];
-                if (courseNumber != 0) {
-                    table.setValueAt(String.valueOf(courseNumber), row, col);
-                }
-            }
-        }
     }
 
     public static void main(String[] args) {
