@@ -107,7 +107,7 @@ public class CourseSchedule extends JFrame {
                         String courseNumber = data.split("\\.")[0];
                         int number = Integer.parseInt(courseNumber);
                         table.setValueAt(courseNumber, row, col);
-                        numberSchedule[row][col-1] = number;  // 更新 numberSchedule 
+                        numberSchedule[row][col-1] = number;  // 更新 numberSchedule
                     }
                     return true;
                 } catch (Exception e) {
@@ -135,11 +135,11 @@ public class CourseSchedule extends JFrame {
                 try {
                     int courseNumber = Integer.parseInt(cellValue);
                     if (courseNumber >= 1 && courseNumber < courses.length) {
-                        numberSchedule[i][j-1] = courseNumber;  // 更新 numberSchedule 
+                        numberSchedule[i][j-1] = courseNumber;  // 更新 numberSchedule
                         table.setValueAt(courses[courseNumber], i, j);
                     }
                 } catch (NumberFormatException e) {
-                    // 如果不是數字，嘗試將課程名稱轉換為編號 
+                    // 如果不是數字，嘗試將課程名稱轉換為編號
                     for (int k = 1; k < courses.length; k++) {
                         if (courses[k].equals(cellValue)) {
                             numberSchedule[i][j-1] = k;
