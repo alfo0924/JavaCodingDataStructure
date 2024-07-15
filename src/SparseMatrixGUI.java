@@ -239,10 +239,11 @@ public class SparseMatrixGUI extends JFrame {
 
     private void addMatrices() {
         if (!checkMatrixSizes()) {
-            showMessage("Matrix sizes are not compatible for addition.");
+            showMessage("Matrix sizes are incompatible for addition.");
             return;
         }
 
+        long startTime = System.nanoTime();
         resultMatrix = new int[matrixSize][matrixSize];
 
         for (int i = 0; i < matrixSize; i++) {
@@ -251,15 +252,20 @@ public class SparseMatrixGUI extends JFrame {
             }
         }
 
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime);
+
         updateMatrixDisplay(resultTable, resultMatrix);
+        timeLabel.setText("Execution Time: " + duration + " ns");
     }
 
     private void subtractMatrices() {
         if (!checkMatrixSizes()) {
-            showMessage("Matrix sizes are not compatible for subtraction.");
+            showMessage("Matrix sizes are incompatible for subtraction.");
             return;
         }
 
+        long startTime = System.nanoTime();
         resultMatrix = new int[matrixSize][matrixSize];
 
         for (int i = 0; i < matrixSize; i++) {
@@ -268,15 +274,20 @@ public class SparseMatrixGUI extends JFrame {
             }
         }
 
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime);
+
         updateMatrixDisplay(resultTable, resultMatrix);
+        timeLabel.setText("Execution Time: " + duration + " ns");
     }
 
     private void multiplyMatrices() {
         if (!checkMatrixMultiplication()) {
-            showMessage("Matrix sizes are not compatible for multiplication.");
+            showMessage("Matrix sizes are incompatible for multiplication.");
             return;
         }
 
+        long startTime = System.nanoTime();
         resultMatrix = new int[matrixSize][matrixSize];
 
         for (int i = 0; i < matrixSize; i++) {
@@ -289,15 +300,20 @@ public class SparseMatrixGUI extends JFrame {
             }
         }
 
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime);
+
         updateMatrixDisplay(resultTable, resultMatrix);
+        timeLabel.setText("Execution Time: " + duration + " ns");
     }
 
     private void multiplySparseMatrices() {
         if (!checkMatrixMultiplication()) {
-            showMessage("Matrix sizes are not compatible for multiplication.");
+            showMessage("Matrix sizes are incompatible for multiplication.");
             return;
         }
 
+        long startTime = System.nanoTime();
         resultMatrix = new int[matrixSize][matrixSize];
 
         for (int i = 0; i < matrixSize; i++) {
@@ -312,19 +328,23 @@ public class SparseMatrixGUI extends JFrame {
             }
         }
 
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime);
+
         updateMatrixDisplay(resultTable, resultMatrix);
+        timeLabel.setText("Execution Time: " + duration + " ns");
     }
 
     private void transposeSecondMatrix() {
         if (sparseMatrix2 == null) {
-            showMessage("Second matrix is not generated yet.");
+            showMessage("Second matrix has not been generated.");
             return;
         }
 
         long startTime = System.nanoTime();
         int[][] transposedMatrix = fastTranspose(sparseMatrix2);
         long endTime = System.nanoTime();
-        long duration = (endTime - startTime); // 不再除以 1000000，保留奈秒單位
+        long duration = (endTime - startTime);
 
         updateMatrixDisplay(matrixTable2, transposedMatrix);
         timeLabel.setText("Execution Time: " + duration + " ns");
@@ -332,14 +352,14 @@ public class SparseMatrixGUI extends JFrame {
 
     private void transposeFirstMatrix() {
         if (sparseMatrix1 == null) {
-            showMessage("First matrix is not generated yet.");
+            showMessage("First matrix has not been generated.");
             return;
         }
 
         long startTime = System.nanoTime();
         int[][] transposedMatrix = fastTranspose(sparseMatrix1);
         long endTime = System.nanoTime();
-        long duration = (endTime - startTime); // 不再除以 1000000，保留奈秒單位
+        long duration = (endTime - startTime);
 
         updateMatrixDisplay(matrixTable1, transposedMatrix);
         timeLabel.setText("Execution Time: " + duration + " ns");
