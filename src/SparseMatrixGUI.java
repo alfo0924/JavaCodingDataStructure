@@ -324,10 +324,10 @@ public class SparseMatrixGUI extends JFrame {
         long startTime = System.nanoTime();
         int[][] transposedMatrix = fastTranspose(sparseMatrix2);
         long endTime = System.nanoTime();
-        long duration = (endTime - startTime) / 1000000;
+        long duration = (endTime - startTime); // 不再除以 1000000，保留奈秒單位
 
         updateMatrixDisplay(matrixTable2, transposedMatrix);
-        timeLabel.setText("Execution Time: " + duration + " ms");
+        timeLabel.setText("Execution Time: " + duration + " ns");
     }
 
     private void transposeFirstMatrix() {
@@ -339,10 +339,10 @@ public class SparseMatrixGUI extends JFrame {
         long startTime = System.nanoTime();
         int[][] transposedMatrix = fastTranspose(sparseMatrix1);
         long endTime = System.nanoTime();
-        long duration = (endTime - startTime) / 1000000;
+        long duration = (endTime - startTime); // 不再除以 1000000，保留奈秒單位
 
         updateMatrixDisplay(matrixTable1, transposedMatrix);
-        timeLabel.setText("Execution Time: " + duration + " ms");
+        timeLabel.setText("Execution Time: " + duration + " ns");
     }
 
     private int[][] fastTranspose(int[][] matrix) {
