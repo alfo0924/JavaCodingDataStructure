@@ -3,5 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/20240709MavenPractice" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/20240711MavenOnlineLoginCrawler" vcs="Git" />
   </component>
 </project>
