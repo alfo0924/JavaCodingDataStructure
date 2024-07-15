@@ -8,27 +8,29 @@ import java.util.Random;
 public class SparseMatrixGUI extends JFrame {
 
     private int matrixSize;
-    private double sparsityPercentage; // New variable to hold sparsity percentage
-    private int[][] sparseMatrix1; // First matrix
-    private int[][] sparseMatrix2; // Second matrix
-    private int[][] resultMatrix; // Result matrix for addition or subtraction
+    private double sparsityPercentage;
+    private int[][] sparseMatrix1;
+    private int[][] sparseMatrix2;
+    private int[][] resultMatrix;
 
-    private JTable matrixTable1; // Table for first matrix
-    private JTable matrixTable2; // Table for second matrix
-    private JTable resultTable; // Table for result matrix
+    private JTable matrixTable1;
+    private JTable matrixTable2;
+    private JTable resultTable;
     private JButton generateButton;
-    private JButton toggleViewButton; // Button to toggle view
-    private JButton generateSecondMatrixButton; // Button to generate second matrix
-    private JButton addMatrixButton; // Button to add matrices
-    private JButton subtractMatrixButton; // Button to subtract matrices
-    private JButton multiplyMatrixButton; // Button to multiply matrices traditionally
-    private JButton multiplySparseMatrixButton; // Button to multiply matrices using sparse matrix method
-    private JButton transposeMatrixButton; // Button to transpose second matrix
+    private JButton toggleViewButton;
+    private JButton generateSecondMatrixButton;
+    private JButton addMatrixButton;
+    private JButton subtractMatrixButton;
+    private JButton multiplyMatrixButton;
+    private JButton multiplySparseMatrixButton;
+    private JButton transposeMatrixButton;
+    private JButton transposeFirstMatrixButton;
     private JTextField sizeTextField;
     private JLabel sparsityLabel;
     private JTextField sparsityTextField;
-    private JLabel messageLabel; // Label to display messages
-    private boolean isSparseView; // Flag to track current view mode
+    private JLabel messageLabel;
+    private JLabel timeLabel;
+    private boolean isSparseView;
 
     public SparseMatrixGUI() {
         setTitle("Sparse Matrix Generator");
@@ -38,17 +40,15 @@ public class SparseMatrixGUI extends JFrame {
 
         JPanel panel = new JPanel(new BorderLayout());
 
-        JPanel controlPanel = new JPanel(new GridLayout(2, 6, 5, 5)); // Two rows for buttons
+        JPanel controlPanel = new JPanel(new GridLayout(2, 6, 5, 5));
 
         JLabel sizeLabel = new JLabel("Enter matrix size:");
         sizeTextField = new JTextField(5);
         generateButton = new JButton("Generate Matrix");
 
-        // New components for sparsity percentage
         sparsityLabel = new JLabel("Enter sparsity percentage (0-1):");
         sparsityTextField = new JTextField(5);
 
-        // Button to toggle view mode
         toggleViewButton = new JButton("Toggle View");
         toggleViewButton.addActionListener(new ActionListener() {
             @Override
@@ -57,7 +57,6 @@ public class SparseMatrixGUI extends JFrame {
             }
         });
 
-        // Button to generate second matrix
         generateSecondMatrixButton = new JButton("Generate Second Matrix");
         generateSecondMatrixButton.addActionListener(new ActionListener() {
             @Override
@@ -66,7 +65,6 @@ public class SparseMatrixGUI extends JFrame {
             }
         });
 
-        // Button to add matrices
         addMatrixButton = new JButton("Add Matrices");
         addMatrixButton.addActionListener(new ActionListener() {
             @Override
@@ -75,7 +73,6 @@ public class SparseMatrixGUI extends JFrame {
             }
         });
 
-        // Button to subtract matrices
         subtractMatrixButton = new JButton("Subtract Matrices");
         subtractMatrixButton.addActionListener(new ActionListener() {
             @Override
@@ -84,7 +81,6 @@ public class SparseMatrixGUI extends JFrame {
             }
         });
 
-        // Button to multiply matrices traditionally
         multiplyMatrixButton = new JButton("Multiply Matrices");
         multiplyMatrixButton.addActionListener(new ActionListener() {
             @Override
@@ -93,7 +89,6 @@ public class SparseMatrixGUI extends JFrame {
             }
         });
 
-        // Button to multiply matrices using sparse matrix method
         multiplySparseMatrixButton = new JButton("Multiply Sparse Matrices");
         multiplySparseMatrixButton.addActionListener(new ActionListener() {
             @Override
@@ -102,12 +97,19 @@ public class SparseMatrixGUI extends JFrame {
             }
         });
 
-        // Button to transpose second matrix
         transposeMatrixButton = new JButton("Transpose Second Matrix");
         transposeMatrixButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 transposeSecondMatrix();
+            }
+        });
+
+        transposeFirstMatrixButton = new JButton("Transpose First Matrix");
+        transposeFirstMatrixButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                transposeFirstMatrix();
             }
         });
 
@@ -129,12 +131,16 @@ public class SparseMatrixGUI extends JFrame {
         controlPanel.add(subtractMatrixButton);
         controlPanel.add(multiplyMatrixButton);
         controlPanel.add(multiplySparseMatrixButton);
-        controlPanel.add(transposeMatrixButton); // Add transpose button
+        controlPanel.add(transposeMatrixButton);
+        controlPanel.add(transposeFirstMatrixButton);
 
-        messageLabel = new JLabel(" "); // Initial message label
-        controlPanel.add(messageLabel); // Add message label to control panel
+        messageLabel = new JLabel(" ");
+        controlPanel.add(messageLabel);
 
-        JPanel matrixPanel = new JPanel(new GridLayout(1, 3, 10, 0)); // Panel to hold all matrix tables
+        timeLabel = new JLabel("Execution Time: ");
+        controlPanel.add(timeLabel);
+
+        JPanel matrixPanel = new JPanel(new GridLayout(1, 3, 10, 0));
 
         matrixTable1 = new JTable();
         matrixTable1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -157,7 +163,6 @@ public class SparseMatrixGUI extends JFrame {
         add(panel);
         setVisible(true);
 
-        // Default view mode is dense matrix
         isSparseView = false;
     }
 
@@ -179,22 +184,17 @@ public class SparseMatrixGUI extends JFrame {
 
             Random random = new Random();
 
-            // Generate sparse matrix 1
             for (int i = 0; i < matrixSize; i++) {
                 for (int j = 0; j < matrixSize; j++) {
-                    // Generate random number between 0 and 1
                     double randomValue = random.nextDouble();
                     if (randomValue > sparsityPercentage) {
-                        // If randomValue is greater than sparsityPercentage, set to random number between 0 and 9
                         sparseMatrix1[i][j] = random.nextInt(10);
                     } else {
-                        // Otherwise, set to 0
                         sparseMatrix1[i][j] = 0;
                     }
                 }
             }
 
-            // Update the table model to display matrix 1 based on current view mode
             updateMatrixDisplay(matrixTable1, sparseMatrix1);
 
         } catch (NumberFormatException e) {
@@ -219,22 +219,17 @@ public class SparseMatrixGUI extends JFrame {
 
             Random random = new Random();
 
-            // Generate sparse matrix 2 with same sparsity percentage as matrix 1
             for (int i = 0; i < matrixSize; i++) {
                 for (int j = 0; j < matrixSize; j++) {
-                    // Generate random number between 0 and 1
                     double randomValue = random.nextDouble();
                     if (randomValue > sparsityPercentage) {
-                        // If randomValue is greater than sparsityPercentage, set to random number between 0 and 9
                         sparseMatrix2[i][j] = random.nextInt(10);
                     } else {
-                        // Otherwise, set to 0
                         sparseMatrix2[i][j] = 0;
                     }
                 }
             }
 
-            // Update the table model to display matrix 2 based on current view mode
             updateMatrixDisplay(matrixTable2, sparseMatrix2);
 
         } catch (NumberFormatException e) {
@@ -303,9 +298,6 @@ public class SparseMatrixGUI extends JFrame {
             return;
         }
 
-        // Assuming sparse matrices are represented with sparseMatrix1 and sparseMatrix2
-
-        // Create resultMatrix using a sparse matrix representation
         resultMatrix = new int[matrixSize][matrixSize];
 
         for (int i = 0; i < matrixSize; i++) {
@@ -315,7 +307,7 @@ public class SparseMatrixGUI extends JFrame {
                     sum += sparseMatrix1[i][k] * sparseMatrix2[k][j];
                 }
                 if (sum != 0) {
-                    resultMatrix[i][j] = sum; // Store non-zero values only
+                    resultMatrix[i][j] = sum;
                 }
             }
         }
@@ -329,13 +321,31 @@ public class SparseMatrixGUI extends JFrame {
             return;
         }
 
-        int[][] transposedMatrix = transpose(sparseMatrix2);
+        long startTime = System.nanoTime();
+        int[][] transposedMatrix = fastTranspose(sparseMatrix2);
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime) / 1000000;
 
-        // Update the table model to display transposed matrix 2 based on current view mode
         updateMatrixDisplay(matrixTable2, transposedMatrix);
+        timeLabel.setText("Execution Time: " + duration + " ms");
     }
 
-    private int[][] transpose(int[][] matrix) {
+    private void transposeFirstMatrix() {
+        if (sparseMatrix1 == null) {
+            showMessage("First matrix is not generated yet.");
+            return;
+        }
+
+        long startTime = System.nanoTime();
+        int[][] transposedMatrix = fastTranspose(sparseMatrix1);
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime) / 1000000;
+
+        updateMatrixDisplay(matrixTable1, transposedMatrix);
+        timeLabel.setText("Execution Time: " + duration + " ms");
+    }
+
+    private int[][] fastTranspose(int[][] matrix) {
         int m = matrix.length;
         int n = matrix[0].length;
         int[][] transposed = new int[n][m];
@@ -363,14 +373,12 @@ public class SparseMatrixGUI extends JFrame {
             return false;
         }
 
-        // Check if the number of columns in sparseMatrix1 equals the number of rows in sparseMatrix2
         return sparseMatrix1[0].length == sparseMatrix2.length;
     }
 
     private void updateMatrixDisplay(JTable table, int[][] matrix) {
         DefaultTableModel tableModel = new DefaultTableModel(matrixSize, matrixSize);
         if (isSparseView) {
-            // Display sparse matrix
             for (int i = 0; i < matrixSize; i++) {
                 for (int j = 0; j < matrixSize; j++) {
                     if (matrix[i][j] != 0) {
@@ -379,7 +387,6 @@ public class SparseMatrixGUI extends JFrame {
                 }
             }
         } else {
-            // Display dense matrix
             for (int i = 0; i < matrixSize; i++) {
                 for (int j = 0; j < matrixSize; j++) {
                     tableModel.setValueAt(matrix[i][j], i, j);
