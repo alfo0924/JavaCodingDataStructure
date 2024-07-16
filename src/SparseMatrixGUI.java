@@ -33,14 +33,14 @@ public class SparseMatrixGUI extends JFrame {
     private boolean isSparseView;
 
     public SparseMatrixGUI() {
-        setTitle("Sparse Matrix Generator");
+        setTitle("Sparse Matrix Operations");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 400);
         setLocationRelativeTo(null);
 
         JPanel panel = new JPanel(new BorderLayout());
 
-        JPanel controlPanel = new JPanel(new GridLayout(2, 6, 5, 5));
+        JPanel controlPanel = new JPanel(new GridLayout(3, 4, 5, 5));
 
         JLabel sizeLabel = new JLabel("Enter matrix size:");
         sizeTextField = new JTextField(5);
@@ -314,113 +314,93 @@ public class SparseMatrixGUI extends JFrame {
         }
 
         long startTime = System.nanoTime();
-        resultMatrix = new int[matrixSize][matrixSize];
-
-        for (int i = 0; i < matrixSize; i++) {
-            for (int j = 0; j < matrixSize; j++) {
-                int sum = 0;
-                for (int k = 0; k < matrixSize; k++) {
-                    sum += sparseMatrix1[i][k] * sparseMatrix2[k][j];
-                }
-                if (sum != 0) {
-                    resultMatrix[i][j] = sum;
-                }
-            }
-        }
-
+        int[][] result = sparseMatrixMultiplication(sparseMatrix1, sparseMatrix2);
         long endTime = System.nanoTime();
         long duration = (endTime - startTime);
 
-        updateMatrixDisplay(resultTable, resultMatrix);
+        updateMatrixDisplay(resultTable, result);
+        timeLabel.setText("Execution Time: " + duration + " ns");
+    }
+
+    private int[][] sparseMatrixMultiplication(int[][] matrix1, int[][] matrix2) {
+        int size = matrix1.length;
+        int[][] result = new int[size][size];
+
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                int sum = 0;
+                for (int k = 0; k < size; k++) {
+                    sum += matrix1[i][k] * matrix2[k][j];
+                }
+                result[i][j] = sum;
+            }
+        }
+
+        return result;
+    }
+
+    private void transposeFirstMatrix() {
+        long startTime = System.nanoTime();
+        sparseMatrix1 = fastTranspose(sparseMatrix1);
+        long endTime = System.nanoTime();
+        long duration = (endTime - startTime);
+
+        updateMatrixDisplay(matrixTable1, sparseMatrix1);
         timeLabel.setText("Execution Time: " + duration + " ns");
     }
 
     private void transposeSecondMatrix() {
-        if (sparseMatrix2 == null) {
-            showMessage("Second matrix has not been generated.");
-            return;
-        }
-
         long startTime = System.nanoTime();
-        int[][] transposedMatrix = fastTranspose(sparseMatrix2);
+        sparseMatrix2 = fastTranspose(sparseMatrix2);
         long endTime = System.nanoTime();
         long duration = (endTime - startTime);
 
-        updateMatrixDisplay(matrixTable2, transposedMatrix);
-        timeLabel.setText("Execution Time: " + duration + " ns");
-    }
-
-    private void transposeFirstMatrix() {
-        if (sparseMatrix1 == null) {
-            showMessage("First matrix has not been generated.");
-            return;
-        }
-
-        long startTime = System.nanoTime();
-        int[][] transposedMatrix = fastTranspose(sparseMatrix1);
-        long endTime = System.nanoTime();
-        long duration = (endTime - startTime);
-
-        updateMatrixDisplay(matrixTable1, transposedMatrix);
+        updateMatrixDisplay(matrixTable2, sparseMatrix2);
         timeLabel.setText("Execution Time: " + duration + " ns");
     }
 
     private int[][] fastTranspose(int[][] matrix) {
-        int m = matrix.length;
-        int n = matrix[0].length;
-        int[][] transposed = new int[n][m];
+        int size = matrix.length;
+        int[][] transpose = new int[size][size];
 
-        for (int i = 0; i < m; i++) {
-            for (int j = 0; j < n; j++) {
-                transposed[j][i] = matrix[i][j];
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                transpose[j][i] = matrix[i][j];
             }
         }
 
-        return transposed;
+        return transpose;
     }
 
     private boolean checkMatrixSizes() {
-        if (sparseMatrix1 == null || sparseMatrix2 == null) {
-            return false;
-        }
-
-        return sparseMatrix1.length == matrixSize && sparseMatrix1[0].length == matrixSize &&
-                sparseMatrix2.length == matrixSize && sparseMatrix2[0].length == matrixSize;
+        return sparseMatrix1 != null && sparseMatrix2 != null && sparseMatrix1.length == matrixSize && sparseMatrix2.length == matrixSize;
     }
 
     private boolean checkMatrixMultiplication() {
-        if (sparseMatrix1 == null || sparseMatrix2 == null) {
-            return false;
-        }
-
-        return sparseMatrix1[0].length == sparseMatrix2.length;
+        return sparseMatrix1 != null && sparseMatrix2 != null && sparseMatrix1.length == matrixSize && sparseMatrix2.length == matrixSize;
     }
 
     private void updateMatrixDisplay(JTable table, int[][] matrix) {
-        DefaultTableModel tableModel = new DefaultTableModel(matrixSize, matrixSize);
-        if (isSparseView) {
-            for (int i = 0; i < matrixSize; i++) {
-                for (int j = 0; j < matrixSize; j++) {
-                    if (matrix[i][j] != 0) {
-                        tableModel.setValueAt(matrix[i][j], i, j);
-                    }
-                }
-            }
-        } else {
-            for (int i = 0; i < matrixSize; i++) {
-                for (int j = 0; j < matrixSize; j++) {
-                    tableModel.setValueAt(matrix[i][j], i, j);
-                }
+        int size = matrix.length;
+        DefaultTableModel model = new DefaultTableModel(size, size);
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                model.setValueAt(matrix[i][j], i, j);
             }
         }
-        table.setModel(tableModel);
+        table.setModel(model);
     }
 
     private void toggleMatrixView() {
-        isSparseView = !isSparseView;
-        updateMatrixDisplay(matrixTable1, sparseMatrix1);
-        updateMatrixDisplay(matrixTable2, sparseMatrix2);
-        updateMatrixDisplay(resultTable, resultMatrix);
+        if (!isSparseView) {
+            updateMatrixDisplay(matrixTable1, sparseMatrix1);
+            updateMatrixDisplay(matrixTable2, sparseMatrix2);
+            isSparseView = true;
+        } else {
+            updateMatrixDisplay(matrixTable1, sparseMatrix1);
+            updateMatrixDisplay(matrixTable2, sparseMatrix2);
+            isSparseView = false;
+        }
     }
 
     private void showMessage(String message) {
@@ -429,6 +409,7 @@ public class SparseMatrixGUI extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 new SparseMatrixGUI();
             }
