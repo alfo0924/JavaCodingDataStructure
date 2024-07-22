@@ -1,14 +1,15 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Stack;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SimpleDrawingApp extends JFrame {
-    private Stack<Shape> shapes = new Stack<>();
-    private Stack<Shape> redoStack = new Stack<>();
+    private List<Shape> shapes = new ArrayList<>();
+    private List<Shape> undoBuffer = new ArrayList<>();
     private Color currentColor = Color.BLACK;
     private int currentThickness = 2;
-    private static final int MAX_UNDO = 5;
+    private static final int MAX_UNDO_REDO = 5;
 
     public SimpleDrawingApp() {
         setTitle("簡單繪圖應用");
@@ -30,9 +31,10 @@ public class SimpleDrawingApp extends JFrame {
         drawingPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                addShape(new Shape(e.getX(), e.getY(), e.getX(), e.getY(), currentColor, currentThickness));
-                redoStack.clear();
+                shapes.add(new Shape(e.getX(), e.getY(), e.getX(), e.getY(), currentColor, currentThickness));
+                undoBuffer.clear();
                 repaint();
+                updateButtons();
             }
         });
 
@@ -40,7 +42,7 @@ public class SimpleDrawingApp extends JFrame {
             @Override
             public void mouseDragged(MouseEvent e) {
                 if (!shapes.isEmpty()) {
-                    Shape currentShape = shapes.peek();
+                    Shape currentShape = shapes.get(shapes.size() - 1);
                     currentShape.x2 = e.getX();
                     currentShape.y2 = e.getY();
                     repaint();
@@ -78,28 +80,45 @@ public class SimpleDrawingApp extends JFrame {
         setLayout(new BorderLayout());
         add(drawingPanel, BorderLayout.CENTER);
         add(controlPanel, BorderLayout.SOUTH);
-    }
 
-    private void addShape(Shape shape) {
-        shapes.push(shape);
-        if (shapes.size() > MAX_UNDO) {
-            shapes.remove(0);
-        }
+        updateButtons();
     }
 
     private void undo() {
-        if (!shapes.isEmpty()) {
-            Shape removedShape = shapes.pop();
-            redoStack.push(removedShape);
+        if (!shapes.isEmpty() && undoBuffer.size() < MAX_UNDO_REDO) {
+            Shape removedShape = shapes.remove(shapes.size() - 1);
+            undoBuffer.add(0, removedShape);
             repaint();
+            updateButtons();
         }
     }
 
     private void redo() {
-        if (!redoStack.isEmpty()) {
-            Shape redoShape = redoStack.pop();
-            addShape(redoShape);
+        if (!undoBuffer.isEmpty()) {
+            Shape redoShape = undoBuffer.remove(0);
+            shapes.add(redoShape);
             repaint();
+            updateButtons();
+        }
+    }
+
+    private void updateButtons() {
+        Container contentPane = getContentPane();
+        Component[] components = contentPane.getComponents();
+        for (Component component : components) {
+            if (component instanceof JPanel) {
+                JPanel panel = (JPanel) component;
+                for (Component c : panel.getComponents()) {
+                    if (c instanceof JButton) {
+                        JButton button = (JButton) c;
+                        if (button.getText().equals("復原 (Undo)")) {
+                            button.setEnabled(shapes.size() > 0 && undoBuffer.size() < MAX_UNDO_REDO);
+                        } else if (button.getText().equals("重做 (Redo)")) {
+                            button.setEnabled(!undoBuffer.isEmpty());
+                        }
+                    }
+                }
+            }
         }
     }
 
