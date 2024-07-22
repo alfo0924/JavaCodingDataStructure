@@ -12,7 +12,7 @@ public class SimpleDrawingApp extends JFrame {
     private static final int MAX_UNDO_REDO = 5;
 
     public SimpleDrawingApp() {
-        setTitle("簡單繪圖應用");
+        setTitle("D1204433林俊傑 簡單繪圖應用");
         setSize(640, 480);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
