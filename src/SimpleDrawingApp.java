@@ -5,12 +5,14 @@ import java.util.Stack;
 
 public class SimpleDrawingApp extends JFrame {
     private Stack<Shape> shapes = new Stack<>();
+    private Stack<Shape> redoStack = new Stack<>();
     private Color currentColor = Color.BLACK;
     private int currentThickness = 2;
+    private static final int MAX_UNDO = 5;
 
     public SimpleDrawingApp() {
         setTitle("簡單繪圖應用");
-        setSize(800, 600);
+        setSize(640, 480);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JPanel drawingPanel = new JPanel() {
@@ -28,7 +30,8 @@ public class SimpleDrawingApp extends JFrame {
         drawingPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                shapes.push(new Shape(e.getX(), e.getY(), e.getX(), e.getY(), currentColor, currentThickness));
+                addShape(new Shape(e.getX(), e.getY(), e.getX(), e.getY(), currentColor, currentThickness));
+                redoStack.clear();
                 repaint();
             }
         });
@@ -36,27 +39,68 @@ public class SimpleDrawingApp extends JFrame {
         drawingPanel.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                Shape currentShape = shapes.peek();
-                currentShape.x2 = e.getX();
-                currentShape.y2 = e.getY();
-                repaint();
+                if (!shapes.isEmpty()) {
+                    Shape currentShape = shapes.peek();
+                    currentShape.x2 = e.getX();
+                    currentShape.y2 = e.getY();
+                    repaint();
+                }
             }
         });
 
-        JButton undoButton = new JButton("復原");
-        undoButton.addActionListener(e -> {
-            if (!shapes.isEmpty()) {
-                shapes.pop();
-                repaint();
+        JButton undoButton = new JButton("復原 (Undo)");
+        undoButton.addActionListener(e -> undo());
+
+        JButton redoButton = new JButton("重做 (Redo)");
+        redoButton.addActionListener(e -> redo());
+
+        JButton colorButton = new JButton("選擇顏色");
+        colorButton.addActionListener(e -> {
+            Color newColor = JColorChooser.showDialog(this, "選擇顏色", currentColor);
+            if (newColor != null) {
+                currentColor = newColor;
             }
+        });
+
+        JLabel thicknessLabel = new JLabel("筆刷粗細:");
+        JSlider thicknessSlider = new JSlider(JSlider.HORIZONTAL, 1, 20, 2);
+        thicknessSlider.addChangeListener(e -> {
+            currentThickness = thicknessSlider.getValue();
         });
 
         JPanel controlPanel = new JPanel();
         controlPanel.add(undoButton);
+        controlPanel.add(redoButton);
+        controlPanel.add(colorButton);
+        controlPanel.add(thicknessLabel);
+        controlPanel.add(thicknessSlider);
 
         setLayout(new BorderLayout());
         add(drawingPanel, BorderLayout.CENTER);
         add(controlPanel, BorderLayout.SOUTH);
+    }
+
+    private void addShape(Shape shape) {
+        shapes.push(shape);
+        if (shapes.size() > MAX_UNDO) {
+            shapes.remove(0);
+        }
+    }
+
+    private void undo() {
+        if (!shapes.isEmpty()) {
+            Shape removedShape = shapes.pop();
+            redoStack.push(removedShape);
+            repaint();
+        }
+    }
+
+    private void redo() {
+        if (!redoStack.isEmpty()) {
+            Shape redoShape = redoStack.pop();
+            addShape(redoShape);
+            repaint();
+        }
     }
 
     private class Shape {
