@@ -90,6 +90,11 @@ public class SimpleDrawingApp extends JFrame {
             undoBuffer.add(0, removedShape);
             repaint();
             updateButtons();
+            System.out.println("執行 Undo 操作 - 撤銷了一個形狀: (" +
+                    removedShape.x1 + "," + removedShape.y1 + ") 到 (" +
+                    removedShape.x2 + "," + removedShape.y2 + ")");
+        } else {
+            System.out.println("無法執行 Undo 操作 - 已達到最大撤銷次數或沒有可撤銷的操作");
         }
     }
 
@@ -99,6 +104,11 @@ public class SimpleDrawingApp extends JFrame {
             shapes.add(redoShape);
             repaint();
             updateButtons();
+            System.out.println("執行 Redo 操作 - 重做了一個形狀: (" +
+                    redoShape.x1 + "," + redoShape.y1 + ") 到 (" +
+                    redoShape.x2 + "," + redoShape.y2 + ")");
+        } else {
+            System.out.println("無法執行 Redo 操作 - 沒有可重做的操作");
         }
     }
 
