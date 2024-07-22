@@ -33,7 +33,7 @@ public class SparseMatrixGUI extends JFrame {
         sparseMatrixArea = new JTextArea(15, 30); // 顯示稀疏矩陣
         messageArea = new JTextArea(3, 50); // 顯示訊息
         messageArea.setEditable(false); // 設定為不可編輯
-        timeArea = new JTextArea(2, 50); // 顯示時間比較結果
+        timeArea = new JTextArea(10, 50); // 顯示時間比較結果
         timeArea.setEditable(false); // 設定為不可編輯
 
         // 創建矩陣面板以顯示兩個文本區域
@@ -118,6 +118,7 @@ public class SparseMatrixGUI extends JFrame {
 
         StringBuilder results = new StringBuilder(); // 用於存儲時間比較結果
         for (int size : sizes) {
+            // 生成密集矩陣
             long denseStartTime = System.nanoTime(); // 開始計時
             int[][] denseMatrix = new int[size][size]; // 初始化密集矩陣
             Random rand = new Random(); // 隨機數生成器
@@ -138,10 +139,85 @@ public class SparseMatrixGUI extends JFrame {
             long sparseEndTime = System.nanoTime(); // 結束計時
             double sparseDuration = (sparseEndTime - sparseStartTime) / 1000000.0; // 計算稀疏矩陣生成時間
 
+            // 比較矩陣轉置的時間
+            long denseTransposeStartTime = System.nanoTime();
+            int[][] denseTranspose = transposeMatrix(denseMatrix);
+            long denseTransposeEndTime = System.nanoTime();
+            double denseTransposeDuration = (denseTransposeEndTime - denseTransposeStartTime) / 1000000.0;
+
+            long sparseTransposeStartTime = System.nanoTime();
+            ArrayList<int[]> sparseTranspose = transposeMatrix(sparseMatrix);
+            long sparseTransposeEndTime = System.nanoTime();
+            double sparseTransposeDuration = (sparseTransposeEndTime - sparseTransposeStartTime) / 1000000.0;
+
+            // 比較矩陣加法的時間
+            long denseAdditionStartTime = System.nanoTime();
+            int[][] denseResult = addMatrices(denseMatrix, denseMatrix);
+            long denseAdditionEndTime = System.nanoTime();
+            double denseAdditionDuration = (denseAdditionEndTime - denseAdditionStartTime) / 1000000.0;
+
+            long sparseAdditionStartTime = System.nanoTime();
+            ArrayList<int[]> sparseResult = addMatrices(sparseMatrix, sparseMatrix);
+            long sparseAdditionEndTime = System.nanoTime();
+            double sparseAdditionDuration = (sparseAdditionEndTime - sparseAdditionStartTime) / 1000000.0;
+
             // 將結果添加到結果字符串中
-            results.append(String.format("Size: %d, Dense Matrix Time: %.2f ms, Sparse Matrix Time: %.2f ms%n", size, denseDuration, sparseDuration));
+            results.append(String.format("Size: %d%n", size));
+            results.append(String.format("Dense Matrix Time: %.2f ms, Sparse Matrix Time: %.2f ms%n", denseDuration, sparseDuration));
+            results.append(String.format("Dense Matrix Transpose Time: %.2f ms, Sparse Matrix Transpose Time: %.2f ms%n", denseTransposeDuration, sparseTransposeDuration));
+            results.append(String.format("Dense Matrix Addition Time: %.2f ms, Sparse Matrix Addition Time: %.2f ms%n%n", denseAdditionDuration, sparseAdditionDuration));
         }
         timeArea.setText(results.toString()); // 顯示時間比較結果
+    }
+
+    private int[][] transposeMatrix(int[][] matrix) {
+        int rows = matrix.length;
+        int cols = matrix[0].length;
+        int[][] transpose = new int[cols][rows];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                transpose[j][i] = matrix[i][j];
+            }
+        }
+        return transpose;
+    }
+
+    private ArrayList<int[]> transposeMatrix(ArrayList<int[]> sparseMatrix) {
+        ArrayList<int[]> transpose = new ArrayList<>();
+        for (int[] entry : sparseMatrix) {
+            transpose.add(new int[]{entry[1], entry[0], entry[2]});
+        }
+        return transpose;
+    }
+
+    private int[][] addMatrices(int[][] matrix1, int[][] matrix2) {
+        int rows = matrix1.length;
+        int cols = matrix1[0].length;
+        int[][] result = new int[rows][cols];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                result[i][j] = matrix1[i][j] + matrix2[i][j];
+            }
+        }
+        return result;
+    }
+
+    private ArrayList<int[]> addMatrices(ArrayList<int[]> sparseMatrix1, ArrayList<int[]> sparseMatrix2) {
+        ArrayList<int[]> result = new ArrayList<>(sparseMatrix1);
+        for (int[] entry : sparseMatrix2) {
+            boolean found = false;
+            for (int[] resultEntry : result) {
+                if (resultEntry[0] == entry[0] && resultEntry[1] == entry[1]) {
+                    resultEntry[2] += entry[2];
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                result.add(new int[]{entry[0], entry[1], entry[2]});
+            }
+        }
+        return result;
     }
 
     public static void main(String[] args) {
