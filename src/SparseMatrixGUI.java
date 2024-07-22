@@ -5,138 +5,146 @@ import java.util.*;
 
 public class SparseMatrixGUI extends JFrame {
 
-    private JTextField densityField;
-    private JTextArea matrixArea, sparseMatrixArea, messageArea, timeArea;
-    private JButton generateButton, compareTimeButton;
-    private int[][] matrix;
-    private ArrayList<int[]> sparseMatrix;
+    private JTextField densityField; // 用於輸入稀疏矩陣的密度
+    private JTextArea matrixArea, sparseMatrixArea, messageArea, timeArea; // 用於顯示矩陣和訊息的文本區域
+    private JButton generateButton, compareTimeButton; // 按鈕用於生成矩陣和比較時間
+    private int[][] matrix; // 二維陣列表示密集矩陣
+    private ArrayList<int[]> sparseMatrix; // 用於存儲稀疏矩陣的列表
 
     public SparseMatrixGUI() {
-        setTitle("D1204433 林俊傑 Sparse Matrix Operations");
-        setSize(1000, 800);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
+        setTitle("D1204433 林俊傑 Sparse Matrix Operations"); // 設定視窗標題
+        setSize(1000, 800); // 設定視窗大小
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // 設定關閉操作
+        setLayout(new BorderLayout()); // 設定佈局
 
+        // 創建輸入面板
         JPanel inputPanel = new JPanel(new FlowLayout());
-        densityField = new JTextField(5);
-        generateButton = new JButton("Generate and Compare");
-        compareTimeButton = new JButton("Compare Times");
+        densityField = new JTextField(5); // 密度輸入框
+        generateButton = new JButton("Generate and Compare"); // 生成和比較按鈕
+        compareTimeButton = new JButton("Compare Times"); // 比較時間按鈕
 
-        inputPanel.add(new JLabel("Density:"));
-        inputPanel.add(densityField);
-        inputPanel.add(generateButton);
-        inputPanel.add(compareTimeButton);
+        inputPanel.add(new JLabel("Density:")); // 添加密度標籤
+        inputPanel.add(densityField); // 添加密度輸入框
+        inputPanel.add(generateButton); // 添加生成按鈕
+        inputPanel.add(compareTimeButton); // 添加比較按鈕
 
-        matrixArea = new JTextArea(15, 30);
-        sparseMatrixArea = new JTextArea(15, 30);
-        messageArea = new JTextArea(3, 50);
-        messageArea.setEditable(false);
-        timeArea = new JTextArea(2, 50);
-        timeArea.setEditable(false);
+        // 創建文本區域以顯示矩陣和訊息
+        matrixArea = new JTextArea(15, 30); // 顯示密集矩陣
+        sparseMatrixArea = new JTextArea(15, 30); // 顯示稀疏矩陣
+        messageArea = new JTextArea(3, 50); // 顯示訊息
+        messageArea.setEditable(false); // 設定為不可編輯
+        timeArea = new JTextArea(2, 50); // 顯示時間比較結果
+        timeArea.setEditable(false); // 設定為不可編輯
 
+        // 創建矩陣面板以顯示兩個文本區域
         JPanel matrixPanel = new JPanel(new GridLayout(1, 2));
-        matrixPanel.add(new JScrollPane(matrixArea));
-        matrixPanel.add(new JScrollPane(sparseMatrixArea));
+        matrixPanel.add(new JScrollPane(matrixArea)); // 添加密集矩陣文本區域
+        matrixPanel.add(new JScrollPane(sparseMatrixArea)); // 添加稀疏矩陣文本區域
 
-        add(inputPanel, BorderLayout.NORTH);
-        add(matrixPanel, BorderLayout.CENTER);
-        add(new JScrollPane(messageArea), BorderLayout.SOUTH);
-        add(new JScrollPane(timeArea), BorderLayout.EAST);
+        // 將面板添加到主視窗中
+        add(inputPanel, BorderLayout.NORTH); // 上方添加輸入面板
+        add(matrixPanel, BorderLayout.CENTER); // 中間添加矩陣面板
+        add(new JScrollPane(messageArea), BorderLayout.SOUTH); // 下方添加訊息區域
+        add(new JScrollPane(timeArea), BorderLayout.EAST); // 右側添加時間區域
 
-        setupListeners();
+        setupListeners(); // 設定事件監聽器
     }
 
     private void setupListeners() {
-        generateButton.addActionListener(e -> generateAndDisplayMatrix());
-        compareTimeButton.addActionListener(e -> compareTimes());
+        // 設定按鈕的事件監聽器
+        generateButton.addActionListener(e -> generateAndDisplayMatrix()); // 生成矩陣
+        compareTimeButton.addActionListener(e -> compareTimes()); // 比較時間
     }
 
     private void generateAndDisplayMatrix() {
         try {
-            double density = Double.parseDouble(densityField.getText());
-            int size = 10; // Fixed size for demonstration
-            matrix = new int[size][size];
-            Random rand = new Random();
+            double density = Double.parseDouble(densityField.getText()); // 讀取密度
+            int size = 10; // 固定大小以進行演示
+            matrix = new int[size][size]; // 初始化密集矩陣
+            Random rand = new Random(); // 隨機數生成器
 
+            // 生成密集矩陣
             for (int i = 0; i < size; i++) {
                 for (int j = 0; j < size; j++) {
-                    if (rand.nextDouble() < density) {
-                        matrix[i][j] = rand.nextInt(10) + 1; // Non-zero values between 1 and 10
+                    if (rand.nextDouble() < density) { // 根據密度決定是否設置非零值
+                        matrix[i][j] = rand.nextInt(10) + 1; // 非零值範圍在 1 到 10 之間
                     }
                 }
             }
 
-            sparseMatrix = convertToSparseFormat(matrix);
-            displayMatrix(matrixArea, matrix);
-            displaySparseMatrix(sparseMatrixArea, sparseMatrix);
-            messageArea.setText("Matrix generated with density: " + density);
+            sparseMatrix = convertToSparseFormat(matrix); // 將密集矩陣轉換為稀疏格式
+            displayMatrix(matrixArea, matrix); // 顯示密集矩陣
+            displaySparseMatrix(sparseMatrixArea, sparseMatrix); // 顯示稀疏矩陣
+            messageArea.setText("Matrix generated with density: " + density); // 顯示生成的訊息
         } catch (NumberFormatException ex) {
-            messageArea.setText("Invalid input for density");
+            messageArea.setText("Invalid input for density"); // 處理無效的密度輸入
         }
     }
 
     private ArrayList<int[]> convertToSparseFormat(int[][] matrix) {
-        ArrayList<int[]> sparseMatrix = new ArrayList<>();
+        ArrayList<int[]> sparseMatrix = new ArrayList<>(); // 初始化稀疏矩陣列表
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[i].length; j++) {
-                if (matrix[i][j] != 0) {
-                    sparseMatrix.add(new int[]{i, j, matrix[i][j]});
+                if (matrix[i][j] != 0) { // 如果矩陣元素不為零，則添加到稀疏矩陣
+                    sparseMatrix.add(new int[]{i, j, matrix[i][j]}); // 存儲行、列及值
                 }
             }
         }
-        return sparseMatrix;
+        return sparseMatrix; // 返回稀疏矩陣
     }
 
     private void displayMatrix(JTextArea area, int[][] matrix) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(); // 用於構建顯示字符串
         for (int[] row : matrix) {
             for (int val : row) {
-                sb.append(String.format("%4d", val));
+                sb.append(String.format("%4d", val)); // 格式化顯示矩陣元素
             }
-            sb.append("\n");
+            sb.append("\n"); // 換行
         }
-        area.setText(sb.toString());
+        area.setText(sb.toString()); // 設定文本區域的內容
     }
 
     private void displaySparseMatrix(JTextArea area, ArrayList<int[]> sparseMatrix) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(); // 用於構建顯示字符串
         for (int[] entry : sparseMatrix) {
-            sb.append(String.format("(%d, %d, %d)\n", entry[0], entry[1], entry[2]));
+            sb.append(String.format("(%d, %d, %d)\n", entry[0], entry[1], entry[2])); // 格式化顯示稀疏矩陣元素
         }
-        area.setText(sb.toString());
+        area.setText(sb.toString()); // 設定文本區域的內容
     }
 
     private void compareTimes() {
-        int[] sizes = {10, 100, 1000, 3000};
-        double density = 0.01;
+        int[] sizes = {10, 100, 1000, 3000}; // 不同的矩陣大小
+        double density = 0.01; // 固定密度
 
-        StringBuilder results = new StringBuilder();
+        StringBuilder results = new StringBuilder(); // 用於存儲時間比較結果
         for (int size : sizes) {
-            long denseStartTime = System.nanoTime();
-            int[][] denseMatrix = new int[size][size];
-            Random rand = new Random();
+            long denseStartTime = System.nanoTime(); // 開始計時
+            int[][] denseMatrix = new int[size][size]; // 初始化密集矩陣
+            Random rand = new Random(); // 隨機數生成器
 
+            // 生成密集矩陣
             for (int i = 0; i < size; i++) {
                 for (int j = 0; j < size; j++) {
-                    if (rand.nextDouble() < density) {
-                        denseMatrix[i][j] = rand.nextInt(10) + 1; // Non-zero values between 1 and 10
+                    if (rand.nextDouble() < density) { // 根據密度決定是否設置非零值
+                        denseMatrix[i][j] = rand.nextInt(10) + 1; // 非零值範圍在 1 到 10 之間
                     }
                 }
             }
-            long denseEndTime = System.nanoTime();
-            double denseDuration = (denseEndTime - denseStartTime) / 1000000.0;
+            long denseEndTime = System.nanoTime(); // 結束計時
+            double denseDuration = (denseEndTime - denseStartTime) / 1000000.0; // 計算密集矩陣生成時間
 
-            long sparseStartTime = System.nanoTime();
-            ArrayList<int[]> sparseMatrix = convertToSparseFormat(denseMatrix);
-            long sparseEndTime = System.nanoTime();
-            double sparseDuration = (sparseEndTime - sparseStartTime) / 1000000.0;
+            long sparseStartTime = System.nanoTime(); // 開始計時
+            ArrayList<int[]> sparseMatrix = convertToSparseFormat(denseMatrix); // 轉換為稀疏矩陣
+            long sparseEndTime = System.nanoTime(); // 結束計時
+            double sparseDuration = (sparseEndTime - sparseStartTime) / 1000000.0; // 計算稀疏矩陣生成時間
 
+            // 將結果添加到結果字符串中
             results.append(String.format("Size: %d, Dense Matrix Time: %.2f ms, Sparse Matrix Time: %.2f ms%n", size, denseDuration, sparseDuration));
         }
-        timeArea.setText(results.toString());
+        timeArea.setText(results.toString()); // 顯示時間比較結果
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new SparseMatrixGUI().setVisible(true));
+        SwingUtilities.invokeLater(() -> new SparseMatrixGUI().setVisible(true)); // 啟動 GUI
     }
 }
