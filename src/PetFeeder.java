@@ -14,7 +14,7 @@ public class PetFeeder extends JFrame {
         foodQueue = new LinkedList<>();
 
         // 設置 GUI
-        setTitle("自動餵食器");
+        setTitle("D1204433 林俊傑 自動餵食器");
         setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
