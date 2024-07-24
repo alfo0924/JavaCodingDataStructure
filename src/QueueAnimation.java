@@ -3,105 +3,113 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Random;
 
 public class QueueAnimation extends JFrame {
-    private static final int WINDOW_WIDTH = 600;
-    private static final int WINDOW_HEIGHT = 400;
-    private static final int CIRCLE_RADIUS = 30;
-
-    private Queue<Integer> queue;
-    private JButton startButton;
+    private Queue<Integer> queue = new LinkedList<>();
+    private JPanel animationPanel;
+    private JTextField inputField;
     private JSlider speedSlider;
+    private JButton enqueueButton, dequeueButton, startButton;
     private Timer timer;
-    private int circleX, circleY;
-    private int speed;
+    private int animationStep = 0;
 
     public QueueAnimation() {
         setTitle("Queue Animation");
+        setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-        setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        queue = new LinkedList<>();
-        generateRandomNumbers(30);
-
-        startButton = new JButton("Start Animation");
-        startButton.addActionListener(new ActionListener() {
+        animationPanel = new JPanel() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                startAnimation();
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                drawQueue(g);
             }
-        });
-
-        speedSlider = new JSlider(1, 100, 50);
-        speedSlider.setMajorTickSpacing(10);
-        speedSlider.setPaintTicks(true);
-        speedSlider.setPaintLabels(true);
-        speedSlider.addChangeListener(e -> speed = speedSlider.getValue());
+        };
+        add(animationPanel, BorderLayout.CENTER);
 
         JPanel controlPanel = new JPanel();
+        inputField = new JTextField(5);
+        enqueueButton = new JButton("Enqueue");
+        dequeueButton = new JButton("Dequeue");
+        startButton = new JButton("Start Animation");
+        speedSlider = new JSlider(JSlider.HORIZONTAL, 1, 10, 5);
+        speedSlider.setMajorTickSpacing(1);
+        speedSlider.setPaintTicks(true);
+        speedSlider.setPaintLabels(true);
+
+        controlPanel.add(new JLabel("Input:"));
+        controlPanel.add(inputField);
+        controlPanel.add(enqueueButton);
+        controlPanel.add(dequeueButton);
         controlPanel.add(startButton);
-        controlPanel.add(new JLabel("Animation Speed:"));
+        controlPanel.add(new JLabel("Speed:"));
         controlPanel.add(speedSlider);
 
-        add(controlPanel, BorderLayout.NORTH);
-        add(new AnimationPanel(), BorderLayout.CENTER);
+        add(controlPanel, BorderLayout.SOUTH);
+
+        enqueueButton.addActionListener(e -> enqueue());
+        dequeueButton.addActionListener(e -> dequeue());
+        startButton.addActionListener(e -> startAnimation());
+
+        timer = new Timer(1000 / speedSlider.getValue(), e -> animate());
     }
 
-    private void generateRandomNumbers(int count) {
-        Random random = new Random();
-        for (int i = 0; i < count; i++) {
-            queue.offer(random.nextInt(100) + 1); // 生成1到100的隨機數字
+    private void enqueue() {
+        try {
+            int value = Integer.parseInt(inputField.getText());
+            queue.offer(value);
+            inputField.setText("");
+            repaint();
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid number");
+        }
+    }
+
+    private void dequeue() {
+        if (!queue.isEmpty()) {
+            queue.poll();
+            repaint();
         }
     }
 
     private void startAnimation() {
-        timer = new Timer(speed, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!queue.isEmpty()) {
-                    int number = queue.poll();
-                    circleX = 0;
-                    circleY = WINDOW_HEIGHT / 2;
-                    moveCircle(number);
-                } else {
-                    timer.stop();
-                }
-            }
-        });
-        timer.start();
+        if (!timer.isRunning()) {
+            animationStep = 0;
+            timer.start();
+            startButton.setText("Stop Animation");
+        } else {
+            timer.stop();
+            startButton.setText("Start Animation");
+        }
     }
 
-    private void moveCircle(int number) {
-        new Thread(() -> {
-            while (circleX < WINDOW_WIDTH - CIRCLE_RADIUS) {
-                circleX += 5; // 每次移動5個像素
-                repaint();
-                try {
-                    // 將計算的時間轉換為long類型
-                    long sleepTime = (long) (100 - speed * 0.9);
-                    Thread.sleep(sleepTime); // 根據滑桿調整速度
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }).start();
+    private void animate() {
+        animationStep++;
+        if (animationStep > queue.size()) {
+            animationStep = 0;
+        }
+        repaint();
+        timer.setDelay(1000 / speedSlider.getValue());
     }
 
-    private class AnimationPanel extends JPanel {
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
+    private void drawQueue(Graphics g) {
+        int x = 50;
+        int y = 150;
+        int width = 50;
+        int height = 50;
+
+        for (Integer value : queue) {
+            g.setColor(Color.BLUE);
+            g.fillRect(x, y, width, height);
             g.setColor(Color.WHITE);
-            g.fillRect(0, 0, getWidth(), getHeight());
+            g.drawString(value.toString(), x + 20, y + 30);
+            x += width + 10;
+        }
 
-            g.setColor(Color.BLACK);
-            g.drawString("Queue: " + queue, 10, 20);
-
+        if (!queue.isEmpty() && animationStep > 0) {
             g.setColor(Color.RED);
-            g.fillOval(circleX, circleY, CIRCLE_RADIUS, CIRCLE_RADIUS);
+            g.drawRect(50 + (animationStep - 1) * (width + 10), y - 10, width, height + 20);
         }
     }
 
